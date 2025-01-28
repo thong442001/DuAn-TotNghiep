@@ -9,11 +9,15 @@ import { useSelector } from 'react-redux';
 import Home from '../components/screens/Home';
 import Profile from '../components/screens/Profile';
 import Notification from '../components/screens/Notification';
+//test chat ( nên thay chat vào Notification)
+import HomeChat from '../components/chat/HomeChat';
 import FriendNotification from '../components/screens/FriendNotification';
 const oTab = {
   Home: { name: 'Home', component: Home },
   FriendNotification: { name: 'FriendNotification', component: FriendNotification },
-  Notification: { name: 'Notification', component: Notification },
+  //Notification: { name: 'Notification', component: Notification },
+  //test chat ( nên thay chat vào Notification)
+  HomeChat: { name: 'HomeChat', component: HomeChat },
   Profile: { name: 'Profile', component: Profile },
 }
 const Tab = createBottomTabNavigator();
@@ -48,7 +52,7 @@ const TabHome = () => {
                 ? "white"
                 : "gray"
             )
-          } else if (route.name === 'Notification') {
+          } else if (route.name === 'HomeChat') {
             name = "bell-o";
             theme ? (
               color = focused
@@ -113,7 +117,7 @@ const oStackHome = {
   SelectImage: { name: 'SelectImage', component: SelectImage },
   UpPost: { name: 'UpPost', component: UpPost },
   Search: { name: 'Search', component: Search },
-  Setting: {name: 'Setting', component: Setting}
+  Setting: { name: 'Setting', component: Setting }
 }
 const StackHome = createNativeStackNavigator();
 const HomeNavigation = () => {
