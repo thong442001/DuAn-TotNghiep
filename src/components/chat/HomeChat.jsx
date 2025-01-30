@@ -1,104 +1,76 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, FlatList } from 'react-native';
-import io from 'socket.io-client';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    FlatList
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-//import { socket } from "../../utils/index";
-import Messagecomponent from "./Messagecomponent";
+import {
+    getAllGroupOfUser,
+} from '../../rtk/API';
+import Groupcomponent from './Groupcomponent';
+import FontAwesome from 'react-native-vector-icons/FontAwesome';
 
-const HomeChat = () => {
-    const [socket, setSocket] = useState(null);
-    const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState([]);
+const HomeChat = (props) => {
+    const { route, navigation } = props;
+    const { params } = route;
 
-    const user = useSelector(state => state.app.user);
+    const dispatch = useDispatch();
+    const me = useSelector(state => state.app.user);
+    const token = useSelector(state => state.app.token);
+
+    const [groups, setGroups] = useState(null);
 
     useEffect(() => {
-        // Kết nối tới server
-        const newSocket = io('http://192.168.1.6:3001', {// Đổi localhost thành IP máy chủ nếu dùng thiết bị thật
-            transports: ['polling'], // Ensure you're using polling
-        });
-        setSocket(newSocket);
-        //console.log(newSocket)
-
-        // Lắng nghe tin nhắn từ server
-        newSocket.on('receive_message', (data) => {
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {
-                    id: new Date().getTime().toString(),
-                    userID: data.userID,
-                    user: data.user,
-                    avatar: data.avatar,
-                    text: data.text,
-                    time: data.time,
-                }
-            ]);
-            console.log(data)
-        });
-
-        newSocket.on('connect', () => console.log('Connected to server:', newSocket.id));
-        newSocket.on('disconnect', () => console.log('Disconnected from server'));
-        newSocket.on('connect_error', (err) => console.error('Connection error:', err.message));
-
-        // Ngắt kết nối khi component bị hủy
-        //return () => socket.disconnect();
+        // lấy AllGroup Of User
+        callGetAllGroupOfUser(me._id);
     }, []);
 
-    const sendMessage = () => {
-        const timeData = {
-            hr:
-                new Date().getHours() < 10
-                    ? `0${new Date().getHours()}`
-                    : new Date().getHours(),
-            mins:
-                new Date().getMinutes() < 10
-                    ? `0${new Date().getMinutes()}`
-                    : new Date().getMinutes(),
-        };
 
-        if (socket && message) {
-            const payload = {
-                userID: user._id,
-                user: user.displayName,
-                avatar: user.avatar,
-                text: message,
-                time: `${timeData.hr}:${timeData.mins}`, // Chuyển đối tượng thành chuỗi
-            };
-            socket.emit('send_message', payload);
-            setMessage('');
+    //call api getAllGroupOfUser
+    const callGetAllGroupOfUser = async (ID_user) => {
+        try {
+            await dispatch(getAllGroupOfUser({ ID_user: ID_user, token: token }))
+                .unwrap()
+                .then((response) => {
+                    //console.log(response)
+                    setGroups(response.groups);
+                })
+                .catch((error) => {
+                    console.log('Error1:', error);
+                });
+
+        } catch (error) {
+            console.log(error)
         }
-    };
+    }
+    const onChat = (ID_group) => {
+        ID_group != null ? navigation.navigate("Chat", { ID_group: ID_group })
+            : console.log("ID_group: " + ID_group);
+    }
 
     return (
         <View style={styles.container}>
-            {/* <FlatList
-                data={messages}
-                renderItem={({ item }) => (
-                    <View style={styles.messageContainer}>
-                        <Text style={styles.username}>{item.user}:</Text>
-                        <Text style={styles.message}>{item.text}</Text>
-                    </View>
-                )}
-                keyExtractor={(item) => item.id}
-            /> */}
+            {/* Nút quay lại */}
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                <FontAwesome name="long-arrow-left" size={24} color="black" />
+            </TouchableOpacity>
+            <Text style={styles.header}>Đoạn chat</Text>
+            <TextInput style={styles.searchBox} placeholder="Tìm kiếm" />
+            {/* groups */}
             <FlatList
-                data={messages}
+                data={groups}
+                keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
-                    <Messagecomponent
-                        item={item}
-                        currentUserID={user._id}
-                    />
+                    <TouchableOpacity onPress={() => onChat(item._id)} key={item._id}>
+                        <Groupcomponent item={item} />
+                    </TouchableOpacity>
                 )}
-                keyExtractor={(item) => item.id}
             />
-            <TextInput
-                style={styles.input}
-                placeholder="Type a message"
-                value={message}
-                onChangeText={setMessage}
-            />
-            <Button title="Send" onPress={sendMessage} />
-        </View>
+        </View >
     )
 }
 
@@ -107,32 +79,19 @@ export default HomeChat
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 10,
         backgroundColor: '#fff',
+        padding: 20,
     },
-    input: {
-        height: 40,
-        borderColor: 'gray',
-        borderWidth: 1,
-        paddingHorizontal: 10,
-        marginBottom: 10,
-        borderRadius: 5,
-        color: 'black',
-    },
-    messageContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 5,
-    },
-    username: {
+    header: {
+        fontSize: 24,
         fontWeight: 'bold',
-        marginRight: 5,
-        color: 'black',
+        marginBottom: 10,
+        color: "black",
     },
-    message: {
-        color: 'black',
-        borderRadius: 5,
+    searchBox: {
+        backgroundColor: '#eee',
+        borderRadius: 20,
         padding: 10,
+        marginBottom: 15,
     },
 });
-

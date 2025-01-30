@@ -19,8 +19,11 @@ let date = new Date().toDateString();
 import { useDispatch, useSelector } from 'react-redux';
 import { setLanguage } from '../../rtk/Reducer';
 import { oStackHome } from '../../navigations/HomeNavigation';
-import { myPost } from '../../rtk/API';
-import { getUser } from '../../rtk/API';
+import {
+    joinGroupPrivate,
+    myPost,
+    getUser
+} from '../../rtk/API';
 
 const Profile = (props) => {
     const { route, navigation } = props;
@@ -34,6 +37,7 @@ const Profile = (props) => {
 
     const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
+    const [ID_groupPrivate, setID_groupPrivate] = useState(null);
 
     const onGetUser = async (userId) => {
         try {
@@ -79,6 +83,32 @@ const Profile = (props) => {
         await onGetPosts(userId);
     };
 
+    //chat
+    const getID_groupPrivate = async (user1, user2) => {
+        try {
+            const paramsAPI = {
+                user1: user1,
+                user2: user2,
+            }
+            await dispatch(joinGroupPrivate(paramsAPI))
+                .unwrap()
+                .then((response) => {
+                    //console.log(response);
+                    setID_groupPrivate(response?.ID_group);
+                })
+                .catch((error) => {
+                    console.log('Error1:', error);
+                });
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+    const onChat = async () => {
+        await getID_groupPrivate(params?._id, me?._id)
+        ID_groupPrivate != null && navigation.navigate("Chat", { ID_group: ID_groupPrivate })
+    }
+
     useEffect(() => {
         fetchData();
     }, [params?._id, me]); // Chạy lại nếu params._id hoặc me thay đổi
@@ -116,7 +146,7 @@ const Profile = (props) => {
                 {
                     user && (user._id !== me._id && (
                         <View>
-                            <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate("HomeChat")}>
+                            <TouchableOpacity style={styles.btn} onPress={onChat}>
                                 <Text style={styles.txt}>Nhắn tin</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.btn} onPress={() => { }}>

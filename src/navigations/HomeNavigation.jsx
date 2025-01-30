@@ -9,20 +9,17 @@ import { useSelector } from 'react-redux';
 import Home from '../components/screens/Home';
 import Profile from '../components/screens/Profile';
 import Notification from '../components/screens/Notification';
-//test chat ( nên thay chat vào Notification)
-import HomeChat from '../components/chat/HomeChat';
 import FriendNotification from '../components/screens/FriendNotification';
 const oTab = {
   Home: { name: 'Home', component: Home },
   FriendNotification: { name: 'FriendNotification', component: FriendNotification },
-  //Notification: { name: 'Notification', component: Notification },
-  //test chat ( nên thay chat vào Notification)
-  HomeChat: { name: 'HomeChat', component: HomeChat },
+  Notification: { name: 'Notification', component: Notification },
   Profile: { name: 'Profile', component: Profile },
 }
 const Tab = createBottomTabNavigator();
 const TabHome = () => {
   const theme = useSelector(state => state.app.theme);
+  const me = useSelector(state => state.app.user);
   //console.log(theme);
   return (
     <Tab.Navigator
@@ -52,7 +49,7 @@ const TabHome = () => {
                 ? "white"
                 : "gray"
             )
-          } else if (route.name === 'HomeChat') {
+          } else if (route.name === 'Notification') {
             name = "bell-o";
             theme ? (
               color = focused
@@ -91,11 +88,27 @@ const TabHome = () => {
     >
       {
         Object.keys(oTab).map((item, index) => {
-          return <Tab.Screen
-            key={index}
-            name={oTab[item].name}
-            component={oTab[item].component}
-            options={{ title: "" }} />
+          if (oTab[item].name == 'Profile') {
+            return <Tab.Screen
+              key={index}
+              name={oTab[item].name}
+              component={oTab[item].component}
+              options={{ title: "" }}
+              listeners={({ navigation }) => ({
+                tabPress: (e) => {
+                  e.preventDefault(); // Chặn mặc định
+                  navigation.navigate("Profile", { _id: me._id }); // Reset về profile của chính bạn
+                },
+              })}
+            />
+          } else {
+            return <Tab.Screen
+              key={index}
+              name={oTab[item].name}
+              component={oTab[item].component}
+              options={{ title: "" }}
+            />
+          }
         })
       }
       {/* <Tab.Screen name="Home" component={Home} options={{ title: '' }} />
@@ -112,12 +125,18 @@ import SelectImage from '../components/screens/SelectImage';
 import UpPost from '../components/screens/UpPost';
 import Search from '../components/screens/Search';
 import Setting from '../components/screens/Setting';
+//test chat ( nên thay chat vào Notification)
+import HomeChat from '../components/chat/HomeChat';
+import Chat from '../components/chat/Chat';
 const oStackHome = {
   TabHome: { name: 'TabHome', component: TabHome },
   SelectImage: { name: 'SelectImage', component: SelectImage },
   UpPost: { name: 'UpPost', component: UpPost },
   Search: { name: 'Search', component: Search },
-  Setting: { name: 'Setting', component: Setting }
+  Setting: { name: 'Setting', component: Setting },
+  //test chat ( nên thay chat vào Notification)
+  HomeChat: { name: 'HomeChat', component: HomeChat },
+  Chat: { name: 'Chat', component: Chat },
 }
 const StackHome = createNativeStackNavigator();
 const HomeNavigation = () => {

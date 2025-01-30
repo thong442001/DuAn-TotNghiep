@@ -1,7 +1,18 @@
 import { StyleSheet, Text, View, Image } from "react-native";
 
 export default function MessageComponent({ currentUserID, item }) {
-  const isCurrentUser = item.userID === currentUserID; // Kiểm tra tin nhắn có phải của user hiện tại không
+  const isCurrentUser = item.sender._id === currentUserID; // Kiểm tra tin nhắn có phải của user hiện tại không
+
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '';
+
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false, // Hiển thị 24h (Bỏ dòng này nếu muốn 12h)
+    });
+  };
 
   return (
     <View
@@ -11,15 +22,15 @@ export default function MessageComponent({ currentUserID, item }) {
       ]}
     >
       {!isCurrentUser && (
-        <Image style={styles.avatar} source={{ uri: item.avatar }} />
+        <Image style={styles.avatar} source={{ uri: item.sender.avatar }} />
       )}
 
       <View style={[styles.messageWrapper, isCurrentUser && styles.currentUserMessage]}>
-        {!isCurrentUser && <Text style={styles.username}>{item.user}</Text>}
+        {!isCurrentUser && <Text style={styles.username}>{item.sender.displayName}</Text>}
         <Text style={[styles.messageText, isCurrentUser && styles.currentUserText]}>
-          {item.text}
+          {item.content}
         </Text>
-        <Text style={styles.messageTime}>{item.time}</Text>
+        <Text style={styles.messageTime}>{formatTime(item.createdAt)}</Text>
       </View>
     </View>
   );
