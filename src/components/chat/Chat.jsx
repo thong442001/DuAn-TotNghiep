@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, FlatList } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    FlatList,
+    Dimensions
+} from 'react-native';
 import io from 'socket.io-client';
 import { useDispatch, useSelector } from 'react-redux';
 //import { socket } from "../../utils/index";
@@ -25,6 +33,12 @@ const Chat = (props) => {
     const [socket, setSocket] = useState(null);
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
+    const [reply, setReply] = useState(null);
+
+    const flatListRef = useRef(null); // Tạo ref cho FlatList
+
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
+    const [keyboardHeight, setKeyboardHeight] = useState(0);
 
     useEffect(() => {
         // lấy name vs avt
@@ -33,7 +47,7 @@ const Chat = (props) => {
         getMessagesOld(params?.ID_group);
 
         // Kết nối tới server
-        const newSocket = io('http://192.168.1.7:3001', {
+        const newSocket = io('http://192.168.1.71:3001', {
             transports: ['websocket', 'polling'],
             reconnectionAttempts: 5, // Thử kết nối lại tối đa 5 lần
             timeout: 5000, // Chờ tối đa 5 giây trước khi báo lỗi
@@ -67,11 +81,31 @@ const Chat = (props) => {
                     },
                     content: data.content,
                     type: data.type,
-                    ID_message_reply: data.ID_message_reply,
+                    ID_message_reply: data.ID_message_reply
+                        ? {
+                            _id: data.ID_message_reply._id,
+                            content: data.ID_message_reply.content || "Tin nhắn không tồn tại",
+                        }
+                        : null,
                     createdAt: data.createdAt,
                 }
             ]);
             //console.log(data)
+
+            //bàn phím
+            const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
+                setKeyboardHeight(e.endCoordinates.height);
+                setKeyboardVisible(true);
+            });
+            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+                setKeyboardHeight(0);
+                setKeyboardVisible(false);
+            });
+
+            return () => {
+                keyboardDidShowListener.remove();
+                keyboardDidHideListener.remove();
+            };
         });
 
         return () => {
@@ -133,10 +167,16 @@ const Chat = (props) => {
                 sender: me._id,
                 content: message,
                 type: 'text',
-                ID_message_reply: null,
+                ID_message_reply: reply
+                    ? {
+                        _id: reply._id,
+                        content: reply.content || "Tin nhắn không tồn tại", // Đảm bảo không bị undefined
+                    }
+                    : null,
             };
             socket.emit('send_message', payload);
             setMessage('');
+            setReply(null); // Xóa tin nhắn trả lời sau khi gửi
         }
     };
 
@@ -144,9 +184,19 @@ const Chat = (props) => {
         navigation.goBack();
     };
 
+    useEffect(() => {
+        // Cuộn xuống tin nhắn cuối cùng khi danh sách tin nhắn thay đổi
+        setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }, 200);
+    }, [messages]);
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container,
+        {
+            paddingBottom: keyboardHeight + Dimensions.get('window').height * 0.1,
+
+        }]}>
             {/* <FlatList
                 data={messages}
                 renderItem={({ item }) => (
@@ -167,22 +217,60 @@ const Chat = (props) => {
                 />
             }
             <FlatList
+                ref={flatListRef} // Gán ref cho FlatList
                 data={messages}
                 renderItem={({ item }) => (
                     <Messagecomponent
                         item={item}
                         currentUserID={me._id}
+                        onReply={() => setReply(item)}
                     />
                 )}
                 keyExtractor={(item) => item._id}
+                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
-            <TextInput
+            {/* bàn phím */}
+            {keyboardVisible && (
+                <View style={styles.keyboardSpacer} />
+            )}
+            {/* <TextInput
                 style={styles.input}
                 placeholder="Type a message"
                 value={message}
                 onChangeText={setMessage}
             />
-            <Button title="Send" onPress={sendMessage} />
+            <Button title="Send" onPress={sendMessage} /> */}
+
+            {
+                reply && (
+                    <View style={styles.replyPreview}>
+                        <View>
+                            <Text style={styles.replyTitle}>Đang trả lời: </Text>
+                            <Text style={styles.replyContent}>{reply.content}</Text>
+                        </View>
+                        <TouchableOpacity
+                            style={styles.replyRight}
+                            onPress={() => setReply(null)}
+                        >
+                            <Text style={styles.replyTitle}>✖</Text>
+                        </TouchableOpacity>
+                    </View>
+                )
+            }
+
+            <View style={styles.inputContainer}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Type a message"
+                    placeholderTextColor={'grey'}
+                    value={message}
+                    onChangeText={setMessage}
+                />
+                <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+                    <Text style={styles.sendText}>Send</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     )
 }
@@ -219,5 +307,61 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 10,
     },
+    // fl
+    // chatContainer: {
+    //     flex: 1,
+    //     padding: 10,
+    // },
+    // bàn phím
+    inputContainer: {
+        height: Dimensions.get('window').height * 0.1,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#f8f8f8',
+        padding: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: '#ccc',
+    },
+    input: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        padding: 10,
+        borderRadius: 20,
+        color: "#000",
+    },
+    sendButton: {
+        marginLeft: 10,
+        backgroundColor: '#007bff',
+        padding: 10,
+        borderRadius: 20,
+    },
+    sendText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    keyboardSpacer: {
+        height: Platform.OS === 'ios' ? 20 : 10, // Adjust spacer height based on platform
+    },
+    //reply
+    replyPreview: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        borderTopWidth: 1,
+        borderColor: 'grey',
+    },
+    replyTitle: {
+        color: 'black',
+    },
+    replyContent: {
+        color: 'grey',
+    },
+    replyRight: {
+        alignItems: 'flex-end',
+    }
 });
 

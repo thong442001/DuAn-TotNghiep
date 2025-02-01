@@ -10,11 +10,14 @@ import Home from '../components/screens/Home';
 import Profile from '../components/screens/Profile';
 import Notification from '../components/screens/Notification';
 import FriendNotification from '../components/screens/FriendNotification';
+//test
+import Demo from '../components/chat/Demo';
 const oTab = {
   Home: { name: 'Home', component: Home },
   FriendNotification: { name: 'FriendNotification', component: FriendNotification },
-  Notification: { name: 'Notification', component: Notification },
+  //Notification: { name: 'Notification', component: Notification },
   Profile: { name: 'Profile', component: Profile },
+  Demo: { name: 'Demo', component: Demo },
 }
 const Tab = createBottomTabNavigator();
 const TabHome = () => {
@@ -49,7 +52,7 @@ const TabHome = () => {
                 ? "white"
                 : "gray"
             )
-          } else if (route.name === 'Notification') {
+          } else if (route.name === 'Demo') {
             name = "bell-o";
             theme ? (
               color = focused
