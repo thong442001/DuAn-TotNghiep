@@ -45,6 +45,7 @@ const appSlice = createSlice({
         builder.addCase(login.fulfilled, (state, action) => {
             console.log("...fulfilled login");
             state.user = action.payload?.user;
+            //console.log(action.payload?.user);
             state.messageLogin = null;
             state.token = action.payload?.token;
             state.refreshToken = action.payload?.refreshToken;
