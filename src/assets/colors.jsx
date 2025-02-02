@@ -6,7 +6,7 @@ const colors = {
     accent: "#0891b2",
     tint: "#f9fafb",
     },
-    light: {
+  light: {
       primary: "#f3f4f6",
       secondary: "#ffffff",
       tertiary: "#4b5563",

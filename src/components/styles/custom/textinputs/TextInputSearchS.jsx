@@ -8,12 +8,13 @@ const searchStyles = StyleSheet.create({
         borderWidth: 1,
         paddingHorizontal: 15,
         borderRadius: 20,
-        marginHorizontal: 5
+        marginHorizontal: 5,
+        color: 'black',
     },
-    line:{
+    line: {
         flex: 1,
         height: 1,
-        color: 'black'
+        color: 'black',
     }
 });
 

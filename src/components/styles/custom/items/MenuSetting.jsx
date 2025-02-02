@@ -12,7 +12,7 @@ const MenuSettingS = StyleSheet.create({
     textSection:{
         fontSize: 15,
     }
-    
+
 })
 
 export default MenuSettingS

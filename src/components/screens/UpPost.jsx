@@ -118,11 +118,11 @@ const UpPost = (props) => {
 
   return (
     <View>
-      <ScrollView style={[{ height: "100%" }, { backgroundColor: theme ? "white" : "black" }]}>
+      <ScrollView style={[{ height: "100%" }, { backgroundColor: theme ? "white" : "#242827" }]}>
         <View style={UpPostS.allbox}>
           <View style={UpPostS.box}>
             <View>
-              <TouchableOpacity onPress={() => navigation.navigate('SelectImage')}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Icon name="arrow-back" size={30} color={theme ? "black" : "white"} />
               </TouchableOpacity>
             </View>

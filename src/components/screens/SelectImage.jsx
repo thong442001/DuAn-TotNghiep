@@ -87,7 +87,7 @@ const SelectImage = (props) => {
         }
     };
     return (
-        <View style={[{ height: "100%" }, { backgroundColor: theme ? "white" : "black" }]}>
+        <View style={[{ height: "100%" }, { backgroundColor: theme ? "white" : "#242827" }]}>
             <View style={SelectImageS.box}>
                 <View style={SelectImageS.close}>
                     <TouchableOpacity onPress={() => image ? setShowDialog(true) : navigation.goBack()}>

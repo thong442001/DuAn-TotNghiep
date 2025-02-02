@@ -1,4 +1,13 @@
-import { ScrollView, Image, StyleSheet, Text, TouchableOpacity, View, ToastAndroid } from 'react-native'
+import {
+    ScrollView,
+    Image,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    ToastAndroid,
+    Dimensions,
+} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import ProfileS from '../styles/screens/ProfileS';
 import Icon from 'react-native-vector-icons/Ionicons'; // Hoặc một bộ icon khác
@@ -9,49 +18,25 @@ import colors from '../../assets/colors';
 import { ThemeContext } from '../../assets/context/ThemeContext';
 let date = new Date().toDateString();
 
-// test Thong
+// Thong
 import { useDispatch, useSelector } from 'react-redux';
 import { setLanguage } from '../../rtk/Reducer';
 import { oStackHome } from '../../navigations/HomeNavigation';
 import { myPost } from '../../rtk/API';
-
-// const listPostProfile = [
-//     {
-//         id: 1,
-//         name: "Trung Nguyen",
-//         date: date,
-//         avata: "https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671142.jpg",
-//         title: "Have a nice day",
-//         image: "https://www.adorama.com/alc/wp-content/uploads/2017/11/shutterstock_114802408.jpg"
-//     },
-//     {
-//         id: 2,
-//         name: "Trung Nguyen",
-//         date: date,
-//         avata: "https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671142.jpg",
-//         title: "Bruh",
-//         image: "https://www.didongmy.com/vnt_upload/news/05_2024/anh-27-meme-dang-yeu-didongmy.jpg"
-//     },
-//     {
-//         id: 3,
-//         name: "Trung Nguyen",
-//         date: date,
-//         avata: "https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671142.jpg",
-//         title: "OMG !!",
-//         image: "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/12/dtcl-meta-tft-13-24-thumb.jpg"
-//     },
-// ]
+import { getUser } from '../../rtk/API';
 
 const Profile = (props) => {
-    const { navigation } = props;
+    const { route, navigation } = props;
+    const { params } = route;
 
     const dispatch = useDispatch();
-    const user = useSelector(state => state.app.user);
+    const me = useSelector(state => state.app.user);
     const token = useSelector(state => state.app.token);
     const {theme} = useContext(ThemeContext)
     const activeColors = colors[theme.mode]
     const language = useSelector(state => state.app.language);
 
+    const [user, setUser] = useState(null);
     const [posts, setPosts] = useState([]);
 
    
@@ -63,10 +48,27 @@ const Profile = (props) => {
     //chạy lại sau mỗi lần render
     const onMyPost = async () => {
         try {
-            await dispatch(myPost({ userId: user._id, token: token }))
+            await dispatch(getUser({ userId: userId, token: token }))
                 .unwrap()
                 .then((response) => {
-                    ///console.log(response);
+                    //console.log(response);
+                    setUser(response.user);
+                })
+                .catch((error) => {
+                    console.log('Error:', error);
+                });
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const onGetPosts = async (userId) => {
+        try {
+            await dispatch(myPost({ userId: userId, token: token }))
+                .unwrap()
+                .then((response) => {
+                    //console.log(response);
                     setPosts(response.posts);
                 })
                 .catch((error) => {
@@ -77,21 +79,27 @@ const Profile = (props) => {
             console.log(error)
         }
     }
-    useEffect(() => {
-        onMyPost();
-        return () => {
+
+    const fetchData = async () => {
+        let userId = params?._id || me?._id;  // Nếu có params._id thì là bạn bè, không thì là chính mình
+        setUser(params?._id ? null : me); // Nếu là mình thì lấy từ Redux
+
+        if (userId && params?._id) {
+            await onGetUser(userId);
         }
-    })
+        await onGetPosts(userId);
+    };
+
+    useEffect(() => {
+        fetchData();
+    }, [params?._id, me]); // Chạy lại nếu params._id hoặc me thay đổi
 
     return (
         <ScrollView style={[ProfileS.all, { backgroundColor: activeColors.tertiary }]}>
             <View style={ProfileS.superBox}>
                 {/* header */}
                 <View style={ProfileS.container}>
-                    <TouchableOpacity onPress={onLanguage}>
-                        <Icon name="arrow-back-circle" size={30} color={theme ? "black" : "white"} />
-                    </TouchableOpacity>
-
+                    {/* title */}
                     <Text style={[ProfileS.h1, { color: theme ? "black" : "white" }]}>
                         {language ? "Profile" : "Trang cá nhân"}</Text>
 
@@ -99,41 +107,62 @@ const Profile = (props) => {
                         <Icon name="add-circle-outline" size={30} color={theme ? "black" : "white"} />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={{ position: "absolute", right: 0 }} onPress={()=> navigation.navigate("Setting")}>
+                    <TouchableOpacity style={{ position: "absolute", right: 0 }} onPress={() => navigation.navigate("Setting")}>
                         <Icon name="menu" size={30} color={theme ? "black" : "white"} />
                     </TouchableOpacity>
                 </View>
 
-                <View style={ProfileS.box}>
-                    <Image style={ProfileS.avata} source={{ uri: user.avatar }} />
-                    <Text style={[ProfileS.name, { color: theme ? "black" : "white" }]}>{user.displayName}</Text>
-                    <Text style={[ProfileS.bio, { color: theme ? "black" : "white" }]}>{user.bio}</Text>
-                </View>
+                {
+                    user && (
+                        <View style={ProfileS.box}>
+                            <Image style={ProfileS.avata} source={{ uri: user?.avatar }} />
+                            <Text style={[ProfileS.name, { color: theme ? "black" : "white" }]}>{user?.displayName}</Text>
+                            <Text style={[ProfileS.bio, { color: theme ? "black" : "white" }]}>{user?.bio}</Text>
+                        </View>
 
-                {/* <View style={ProfileS.contact}>
-                    <View style={ProfileS.row}>
-                        <Icon name="mail-outline" size={20} color="gray" />
-                        <Text style={ProfileS.h3}>trungyasuo020@gmail.com</Text>
-                    </View>
-                    <View style={ProfileS.row}>
-                        <Icon name="call-outline" size={20} color="gray" />
-                        <Text style={ProfileS.h3}>+84912455367</Text>
-                    </View>
-                </View>
-                <View style={ProfileS.content}>
-                    <Text style={ProfileS.bio}>
-                        "Nothing !"
-                    </Text>
-                </View> */}
+                    )
+                }
+
+                {/* bạn bè */}
+                {
+                    user && (user._id !== me._id && (
+                        <View>
+                            <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate("HomeChat")}>
+                                <Text style={styles.txt}>Nhắn tin</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.btn} onPress={() => { }}>
+                                <Text style={styles.txt}>Gửi lời mời</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ))
+                }
 
                 {/* List of posts */}
-                {posts.map((item) => (
-                    <ProfilePost key={item._id} dataProfile={item} />
-                ))}
+                {
+                    posts.map((item) => (
+                        <ProfilePost key={item._id} dataProfile={item} />
+                    ))
+                }
 
-            </View>
+            </View >
         </ScrollView >
     )
 }
 
 export default Profile
+
+const styles = StyleSheet.create({
+    btn: {
+        width: Dimensions.get('window').width * 0.5,
+        height: Dimensions.get('window').height * 0.05,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#0064E0',
+        borderRadius: 8,
+        margin: 10,
+    },
+    txt: {
+        color: '#FFFFFF',
+    }
+})

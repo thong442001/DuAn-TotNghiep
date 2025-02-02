@@ -2,26 +2,37 @@ import React, { useState, useEffect } from 'react';
 import { View, FlatList, TouchableOpacity } from 'react-native';
 import { CustomTextInputSearch } from '../custom/CustomTextInput';
 import SearchItem from '../custom/SearchItem';
-import { useDispatch } from 'react-redux';
-import { getAllUsers } from '../../rtk/API';
+import { useDispatch, useSelector } from 'react-redux';
+import { getRoleUser } from '../../rtk/API';
 //Thong
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const Search = (props) => {
   const { navigation } = props;
 
+  const dispatch = useDispatch();
+  const token = useSelector(state => state.app.token);
+
   const [data, setData] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]); // Tạo state cho danh sách sản phẩm sau khi lọc.
 
-  const dispatch = useDispatch();
-
   const getData = async () => {
     try {
-      const result = await dispatch(getAllUsers());
-      if (result.payload && result.payload.users) {
-        setData(result.payload.users);
-      }
+      await dispatch(getRoleUser({ token: token }))
+        .unwrap()
+        .then((response) => {
+          //console.log(response.users);
+          setData(response.users);
+        })
+        .catch((error) => {
+          console.log('Error:', error);
+        });
+
+      // if (result.payload && result.payload.users) {
+
+      // }
+      // console.log(result);
     } catch (error) {
       console.log(error);
     }
@@ -62,7 +73,12 @@ const Search = (props) => {
       <FlatList
         data={filteredProducts}
         keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <SearchItem user={item} />}
+        renderItem={({ item }) =>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Profile", { _id: item._id })}>
+            <SearchItem user={item} />
+          </TouchableOpacity>
+        }
       />
     </View >
   );

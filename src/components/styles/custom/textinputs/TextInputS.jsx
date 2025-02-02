@@ -1,21 +1,26 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+
+
+const { width, height } = Dimensions.get('window');
 
 const inputStyles = StyleSheet.create({
   inputContainer: {
+    width: width * 0.9,
+    height:  height * 0.075,
     marginVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
     borderRadius: 15,
-    marginBottom: 18,
     paddingHorizontal: 15,
+    borderWidth: 1,
+    borderColor: '#CED5DF',
   },
   icon: {
     marginRight: 10,
   },
   input: {
     flex: 1,
-    paddingVertical: 20,
     fontSize: 16,
     color: 'black',
   },

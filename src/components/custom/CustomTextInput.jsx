@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, TextInput } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEnvelope, faLock, faUser, faRedo } from '@fortawesome/free-solid-svg-icons';
+import {faUser, faRedo } from '@fortawesome/free-solid-svg-icons';
 import inputStyles from '../styles/custom/textinputs/TextInputS';
 import searchStyles from '../styles/custom/textinputs/TextInputSearchS';
-import Icon from 'react-native-vector-icons/Ionicons'; // Hoặc một bộ icon khác
 
 export const CustomTextInputUserName = ({ placeholder, onChangeText, value }) => {
   return (
@@ -25,10 +24,9 @@ export const CustomTextInputUserName = ({ placeholder, onChangeText, value }) =>
 export const CustomTextInputEmail = ({ placeholder, onChangeText, value }) => {
   return (
     <View style={inputStyles.inputContainer}>
-      <FontAwesomeIcon icon={faEnvelope} size={20} style={inputStyles.icon} />
       <TextInput
         placeholder={placeholder}
-        placeholderTextColor={'#64676c'}
+        placeholderTextColor={'#8C96A2'}
         onChangeText={onChangeText}
         style={inputStyles.input}
         value={value}
@@ -41,10 +39,9 @@ export const CustomTextInputEmail = ({ placeholder, onChangeText, value }) => {
 export const CustomTextInputPassword = ({ placeholder, onChangeText, value }) => {
   return (
     <View style={inputStyles.inputContainer}>
-      <FontAwesomeIcon icon={faLock} size={20} style={inputStyles.icon} />
       <TextInput
         placeholder={placeholder}
-        placeholderTextColor={'#64676c'}
+        placeholderTextColor={'#8C96A2'}
         onChangeText={onChangeText}
         style={inputStyles.input}
         value={value}

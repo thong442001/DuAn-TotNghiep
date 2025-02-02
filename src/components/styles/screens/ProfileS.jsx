@@ -20,7 +20,7 @@ const ProfileS = StyleSheet.create({
         fontSize: 25,
         //color: 'black',
         fontWeight: 'bold',
-        //textAlign: 'center',
+        textAlign: 'center',
 
     },
     avata: {

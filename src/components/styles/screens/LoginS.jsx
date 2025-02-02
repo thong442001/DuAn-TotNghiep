@@ -1,61 +1,52 @@
-import { StyleSheet } from "react-native";
-import colors from "../../../assets/colors";
+import { Dimensions, StyleSheet } from 'react-native';
+
+const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
-  ViewAll:{
-    flex: 1,
-    backgroundColor: '#fff'
-  },
   container: {
-    flex: 0.9,
-    paddingHorizontal: 20,
+    flex: 1,
+    paddingHorizontal: width * 0.05,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    alignItems: 'center',  
+    backgroundColor: '#ECF5FA',
   },
-  headerText: {
+  viewLogo: {
+    width: width * 0.4,
     alignItems: 'center',
-    fontSize: 35,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#000',
+    justifyContent: 'center',
+    marginBottom: height * 0.1,
   },
-  subheaderText: {
-    fontSize: 18,
-    fontWeight: '500',
-    color: colors.linkText,
+  logo: {
+    resizeMode: 'contain',
   },
-  forgotPasswordText: {
-    alignSelf: 'flex-end',
-    color: colors.linkText,
-    fontSize: 14,
-    marginBottom: 30,
+  formInput: {
+    marginBottom: height * 0.02,
   },
   loginButton: {
-    backgroundColor: colors.Bluebackground,
-    paddingVertical: 15,
+    height: height * 0.06,
+    width: width * 0.9,
+    backgroundColor: '#1976D2',
+    paddingVertical: height * 0.01,
     borderRadius: 25,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: height * 0.01,
   },
   loginButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: width * 0.040,
+    fontWeight: '500',
   },
-  footerText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+  forgotPasswordText: {
+    alignSelf: 'center',
+    color: 'black',
+    fontWeight: '600',
+    fontSize: width * 0.04,
+    marginBottom: height * 0.02,
   },
-  signupText: {
-    color: colors.linkText,
-    fontWeight: 'bold',
-  },
-  logo: {
-    borderRadius: 50,
-    width: 70,
-    height: 70
+  formSectionLogin:{
+    marginBottom: height * 0.25,
   }
 });
+
 
 export default styles;
