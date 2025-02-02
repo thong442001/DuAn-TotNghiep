@@ -25,10 +25,19 @@ const HomeChat = (props) => {
     const [groups, setGroups] = useState(null);
 
     useEffect(() => {
-        // lấy AllGroup Of User
+        // Call API khi lần đầu vào trang
         callGetAllGroupOfUser(me._id);
-    }, []);
 
+        // Thêm listener để gọi lại API khi quay lại trang
+        const focusListener = navigation.addListener('focus', () => {
+            callGetAllGroupOfUser(me._id);
+        });
+
+        // Cleanup listener khi component bị unmount
+        return () => {
+            focusListener();
+        };
+    }, [navigation]);
 
     //call api getAllGroupOfUser
     const callGetAllGroupOfUser = async (ID_user) => {
@@ -36,7 +45,7 @@ const HomeChat = (props) => {
             await dispatch(getAllGroupOfUser({ ID_user: ID_user, token: token }))
                 .unwrap()
                 .then((response) => {
-                    //console.log(response)
+                    //console.log(response.groups)
                     setGroups(response.groups);
                 })
                 .catch((error) => {

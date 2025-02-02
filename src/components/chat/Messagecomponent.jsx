@@ -1,4 +1,3 @@
-import { BottomTabBar } from "@react-navigation/bottom-tabs";
 import { useState, useRef } from "react";
 import {
   StyleSheet,
@@ -8,9 +7,11 @@ import {
   TouchableWithoutFeedback,
   Modal,
   TouchableOpacity,
+  Dimensions,
 } from "react-native";
 
-export default function MessageComponent({ currentUserID, item, onReply }) {
+
+export default function MessageComponent({ currentUserID, item, onReply, onRevoke }) {
   const isCurrentUser = item.sender._id === currentUserID; // Kiểm tra tin nhắn có phải của user hiện tại không
 
   const [menuVisible, setMenuVisible] = useState(false);
@@ -53,26 +54,36 @@ export default function MessageComponent({ currentUserID, item, onReply }) {
       )}
 
       {/* Nhấn giữ tin nhắn để mở menu */}
-      <TouchableWithoutFeedback onLongPress={handleLongPress}>
+      <TouchableWithoutFeedback onLongPress={() => {
+        item._destroy != true && handleLongPress()
+      }}>
         <View
           ref={messageRef} // Gắn ref vào đây
           style={[styles.messageWrapper, isCurrentUser && styles.currentUserMessage]}
         >
           {!isCurrentUser && <Text style={styles.username}>{item.sender.displayName}</Text>}
           {/* Hiển thị tin nhắn trả lời nếu có */}
-          {item.ID_message_reply && (
-            <View style={styles.replyContainer}>
-              <Text
-                style={styles.replyText}
-                numberOfLines={2}>
-                {item.ID_message_reply.content || "Tin nhắn không tồn tại"}
-              </Text>
-            </View>
-          )}
+          {
+            (item.ID_message_reply && item._destroy == false) && (
+              <View style={styles.replyContainer}>
+                <Text
+                  style={styles.replyText}
+                  numberOfLines={2}>
+                  {item.ID_message_reply.content || "Tin nhắn không tồn tại"}
+                </Text>
+              </View>
+            )}
           {/* Nội dung tin nhắn chính */}
-          <Text style={[styles.messageText, isCurrentUser && styles.currentUserText]}>
-            {item.content}
-          </Text>
+          {
+            // tin nhắn bị thu hồi
+            item._destroy == true
+              ? <Text style={[styles.messageTextThuHoi]}>
+                Tin nhắn đã được thu hồi
+              </Text>
+              : <Text style={[styles.messageText, isCurrentUser && styles.currentUserText]}>
+                {item.content}
+              </Text>
+          }
           {/* thời gian */}
           <Text style={styles.messageTime}>{formatTime(item.createdAt)}</Text>
         </View>
@@ -117,15 +128,21 @@ export default function MessageComponent({ currentUserID, item, onReply }) {
               <View style={[styles.messageWrapper, isCurrentUser && styles.currentUserMessage]}>
                 {!isCurrentUser && <Text style={styles.username}>{item.sender.displayName}</Text>}
                 {/* Hiển thị tin nhắn trả lời nếu có */}
-                {item.ID_message_reply && (
-                  <View style={styles.replyContainer}>
-                    <Text style={styles.replyText} numberOfLines={2}>{item.ID_message_reply.content}</Text>
-                  </View>
-                )}
+                {
+                  (item.ID_message_reply && item._destroy == false) && (
+                    <View style={styles.replyContainer}>
+                      <Text style={styles.replyText} numberOfLines={2}>{item.ID_message_reply.content}</Text>
+                    </View>
+                  )}
                 {/* Nội dung tin nhắn chính */}
-                <Text style={[styles.messageText, isCurrentUser && styles.currentUserText]}>
-                  {item.content}
-                </Text>
+                {
+                  // tin nhắn bị thu hồi
+                  item._destroy == true
+                    ? <Text style={[styles.messageTextThuHoi]}>
+                      Tin nhắn đã được thu hồi</Text>
+                    : <Text style={[styles.messageText, isCurrentUser && styles.currentUserText]}>
+                      {item.content}</Text>
+                }
                 {/* thời gian */}
                 <Text style={styles.messageTime}>{formatTime(item.createdAt)}</Text>
               </View>
@@ -137,7 +154,7 @@ export default function MessageComponent({ currentUserID, item, onReply }) {
                   style={styles.menuItem}
                   onPress={() => {
                     onReply(item); // Gửi tin nhắn được chọn về component cha
-                    setMenuVisible(false);
+                    setMenuVisible(false);// tắc modal
                   }}>
                   <Text style={styles.menuText}>Trả lời</Text>
                 </TouchableOpacity>
@@ -146,7 +163,12 @@ export default function MessageComponent({ currentUserID, item, onReply }) {
                 </TouchableOpacity>
                 {
                   isCurrentUser
-                  && <TouchableOpacity style={styles.menuItem}>
+                  && <TouchableOpacity
+                    style={styles.menuItem}
+                    onPress={() => {
+                      onRevoke(item._id); // Thu hồi tin nhắn
+                      setMenuVisible(false);// tắc modal
+                    }} >
                     <Text style={styles.menuText}>Thu hồi</Text>
                   </TouchableOpacity>
                 }
@@ -178,7 +200,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   messageWrapper: {
-    maxWidth: "70%",
+    maxWidth: Dimensions.get('window').width * 0.7,
     padding: 10,
     borderRadius: 15,
     backgroundColor: "#D9D9D9", // Màu tin nhắn của người khác 
@@ -193,6 +215,10 @@ const styles = StyleSheet.create({
   },
   messageText: {
     color: "#000000", // Màu chữ cho tin nhắn của người khác
+    fontSize: 16,
+  },
+  messageTextThuHoi: {
+    color: "grey",
     fontSize: 16,
   },
   currentUserText: {

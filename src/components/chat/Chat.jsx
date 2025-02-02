@@ -6,7 +6,9 @@ import {
     TouchableOpacity,
     StyleSheet,
     FlatList,
-    Dimensions
+    Dimensions,
+    Platform,
+    Keyboard, // bàn phím
 } from 'react-native';
 import io from 'socket.io-client';
 import { useDispatch, useSelector } from 'react-redux';
@@ -49,6 +51,7 @@ const Chat = (props) => {
         // Kết nối tới server
         const newSocket = io('http://192.168.1.71:3001', {
             transports: ['websocket', 'polling'],
+            reconnection: true,   // Cho phép tự động kết nối lại
             reconnectionAttempts: 5, // Thử kết nối lại tối đa 5 lần
             timeout: 5000, // Chờ tối đa 5 giây trước khi báo lỗi
         });
@@ -88,29 +91,41 @@ const Chat = (props) => {
                         }
                         : null,
                     createdAt: data.createdAt,
+                    _destroy: data._destroy
                 }
             ]);
-            //console.log(data)
+        });
 
-            //bàn phím
-            const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
-                setKeyboardHeight(e.endCoordinates.height);
-                setKeyboardVisible(true);
+        // Lắng nghe tin nhắn từ server
+        newSocket.on('message_revoked', (data) => {
+            //console.log("🔥 Đã nhận được message_revoked:");
+            setMessages(prevMessages => {
+                const updatedMessages = prevMessages.map(msg =>
+                    msg._id === data.ID_message ? { ...msg, _destroy: true } : msg
+                );
+                //console.log("📌 Danh sách tin nhắn sau khi thu hồi:", updatedMessages);
+                return updatedMessages;
             });
-            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
-                setKeyboardHeight(0);
-                setKeyboardVisible(false);
-            });
+        });
 
-            return () => {
-                keyboardDidShowListener.remove();
-                keyboardDidHideListener.remove();
-            };
+
+
+        //bàn phím
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
+            setKeyboardHeight(e.endCoordinates.height);
+            setKeyboardVisible(true);
+        });
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardHeight(0);
+            setKeyboardVisible(false);
         });
 
         return () => {
             console.log('Ngắt kết nối socket');
             newSocket.disconnect();
+            // bàn phím
+            keyboardDidShowListener.remove();
+            keyboardDidHideListener.remove();
         };
     }, [params?.ID_group]);
 
@@ -147,7 +162,7 @@ const Chat = (props) => {
             await dispatch(getMessagesGroup({ ID_group: ID_group, token: token }))
                 .unwrap()
                 .then((response) => {
-                    //console.log(response)
+                    //console.log(response.messages)
                     setMessages(response.messages);
                 })
                 .catch((error) => {
@@ -159,7 +174,7 @@ const Chat = (props) => {
         }
     }
 
-    // gửi tin nhắt
+    // gửi tin nhắn
     const sendMessage = () => {
         if (socket && message) {
             const payload = {
@@ -177,11 +192,12 @@ const Chat = (props) => {
             socket.emit('send_message', payload);
             setMessage('');
             setReply(null); // Xóa tin nhắn trả lời sau khi gửi
+            Keyboard.dismiss();// tắc bàn phím
         }
     };
 
     const handleGoBack = () => {
-        navigation.goBack();
+        navigation.navigate("HomeChat")
     };
 
     useEffect(() => {
@@ -191,11 +207,21 @@ const Chat = (props) => {
         }, 200);
     }, [messages]);
 
+    // Xử lý thu hồi tin nhắn
+    const revokeMessage = (ID_message) => {
+        const payload = {
+            ID_message: ID_message,
+            ID_group: params.ID_group
+        };
+        socket.emit('revoke_message', payload);
+        //console.log("Sự kiện thu hồi tin nhắn đã phát đi:", ID_message);
+    };
+
     return (
         <View style={[styles.container,
         {
-            paddingBottom: keyboardHeight + Dimensions.get('window').height * 0.1,
-
+            //paddingBottom: keyboardHeight
+            paddingBottom: Dimensions.get('window').height * 0.1,
         }]}>
             {/* <FlatList
                 data={messages}
@@ -218,12 +244,14 @@ const Chat = (props) => {
             }
             <FlatList
                 ref={flatListRef} // Gán ref cho FlatList
+                contentContainerStyle={{ flexGrow: 1 }}
                 data={messages}
                 renderItem={({ item }) => (
                     <Messagecomponent
                         item={item}
                         currentUserID={me._id}
                         onReply={() => setReply(item)}
+                        onRevoke={revokeMessage}// Truyền xuống để cập nhật danh sách tin nhắn
                     />
                 )}
                 keyExtractor={(item) => item._id}
@@ -231,9 +259,11 @@ const Chat = (props) => {
                 onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
             />
             {/* bàn phím */}
-            {keyboardVisible && (
-                <View style={styles.keyboardSpacer} />
-            )}
+            {
+                keyboardVisible && (
+                    <View style={styles.keyboardSpacer} />
+                )
+            }
             {/* <TextInput
                 style={styles.input}
                 placeholder="Type a message"
@@ -271,7 +301,7 @@ const Chat = (props) => {
                     <Text style={styles.sendText}>Send</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </View >
     )
 }
 
@@ -281,7 +311,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 10,
-        backgroundColor: '#fff',
+        backgroundColor: 'white',
     },
     input: {
         height: 40,
@@ -307,11 +337,6 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 10,
     },
-    // fl
-    // chatContainer: {
-    //     flex: 1,
-    //     padding: 10,
-    // },
     // bàn phím
     inputContainer: {
         height: Dimensions.get('window').height * 0.1,
@@ -345,6 +370,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     keyboardSpacer: {
+        //backgroundColor: 'blue',
         height: Platform.OS === 'ios' ? 20 : 10, // Adjust spacer height based on platform
     },
     //reply

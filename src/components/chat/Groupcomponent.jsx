@@ -12,6 +12,7 @@ export default function Groupcomponent({ item }) {
   const me = useSelector(state => state.app.user);
   const [name, setName] = useState(null);
   const [avatar, setAvatar] = useState(null);
+  //console.log(item);
 
   useEffect(() => {
     const otherUser = item.members.find(user => user._id !== me._id);
@@ -37,7 +38,16 @@ export default function Groupcomponent({ item }) {
 
   }, []);
 
+  const formatTime = (timestamp) => {
+    if (!timestamp) return '';
 
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('vi-VN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false, // Hiển thị 24h (Bỏ dòng này nếu muốn 12h)
+    });
+  };
 
   return (
     <View style={styles.chatItem}>
@@ -45,15 +55,39 @@ export default function Groupcomponent({ item }) {
         (name != null)
         && <Image source={{ uri: avatar }} style={styles.avatar} />
       }
+      {/* view tên nhóm và tin nhắn mới nhất */}
+      <View style={styles.vTxt}>
+        {
+          (avatar != null)
+          && <View style={styles.chatInfo}>
+            <Text style={styles.name}>{name}</Text>
+          </View>
+        }
+        {/* tin nhắn mới nhất */}
+        <View style={styles.vMessageNew}>
+          {/* name */}
+          {
+            me._id != item.messageLatest.sender.ID_user
+              ? <Text
+                style={styles.messageName}>
+                {item.messageLatest.sender.displayName}: </Text>
+              : <Text
+                style={styles.messageName}>
+                Bạn: </Text>
+          }
 
-      {
-        (avatar != null)
-        && <View style={styles.chatInfo}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.message}>{item.message}</Text>
+
+          {/* content */}
+          <Text
+            style={styles.messageContent}
+            numberOfLines={1}
+          >{item.messageLatest.content}</Text>
+          {/* thời gian */}
+          <Text style={styles.messageNewTime}>{formatTime(item.messageLatest.createdAt)}</Text>
         </View>
-      }
-    </View>
+      </View>
+
+    </View >
   );
 }
 
@@ -85,12 +119,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: "black",
   },
-  message: {
-    fontSize: 14,
-    color: 'gray',
-  },
   time: {
     fontSize: 12,
     color: 'gray',
+  },
+  vTxt: {
+    flexDirection: 'column',
+    //backgroundColor: 'blue',
+    flex: 1,
+  },
+  vMessageNew: {
+    flexDirection: 'row',
+
+  },
+  messageName: {
+    fontSize: 14,
+    color: 'gray',
+  },
+  messageContent: {
+    fontSize: 14,
+    color: 'gray',
+    flex: 1,
+  },
+  messageNewTime: {
+    fontSize: 10,
+    color: "#aaa",
+    marginTop: 3,
+    alignItems: "flex-end",
   },
 });

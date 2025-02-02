@@ -111,7 +111,9 @@ export const addPost = createAsyncThunk(
   }
 );
 
-//chat
+/////////////  chat
+
+// tham gia room socket hoặc tạo group
 export const joinGroupPrivate = createAsyncThunk(
   'group/joinGroupPrivate',
   async (data, { rejectWithValue }) => {
@@ -147,7 +149,6 @@ export const getGroupID = createAsyncThunk(
     }
   }
 );
-
 
 export const getAllGroupOfUser = createAsyncThunk(
   'group/getAllGroupOfUser',

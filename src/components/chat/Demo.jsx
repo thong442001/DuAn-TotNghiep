@@ -1,4 +1,4 @@
-import React, {useState, useRef} from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -10,17 +10,17 @@ import {
 } from 'react-native';
 // cài thư viện: npm install react-native-reanimated
 const REACTIONS = [
-  {id: 'like', icon: '👍', label: 'Thích'},
-  {id: 'love', icon: '❤️', label: 'Yêu thích'},
-  {id: 'haha', icon: '😂', label: 'Haha'},
-  {id: 'wow', icon: '😮', label: 'Wow'},
-  {id: 'sad', icon: '😢', label: 'Buồn'},
-  {id: 'angry', icon: '😡', label: 'Phẫn nộ'},
+  { id: 'like', icon: '👍', label: 'Thích' },
+  { id: 'love', icon: '❤️', label: 'Yêu thích' },
+  { id: 'haha', icon: '😂', label: 'Haha' },
+  { id: 'wow', icon: '😮', label: 'Wow' },
+  { id: 'sad', icon: '😢', label: 'Buồn' },
+  { id: 'angry', icon: '😡', label: 'Phẫn nộ' },
 ];
 
 const REACTION_WIDTH = 60;
 const REACTIONS_CONTAINER_WIDTH = REACTIONS.length * REACTION_WIDTH;
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const ReactionPicker = () => {
   const [selectedReaction, setSelectedReaction] = useState(null);
@@ -90,9 +90,8 @@ const ReactionPicker = () => {
         <View style={styles.likeButton}>
           <Text style={styles.likeButtonText}>
             {selectedReaction
-              ? `${REACTIONS.find(r => r.id === selectedReaction).icon} ${
-                  REACTIONS.find(r => r.id === selectedReaction).label
-                }`
+              ? `${REACTIONS.find(r => r.id === selectedReaction).icon} ${REACTIONS.find(r => r.id === selectedReaction).label
+              }`
               : '👍 Thích'}
           </Text>
         </View>
@@ -105,7 +104,7 @@ const ReactionPicker = () => {
             styles.reactionsContainer,
             {
               opacity: reactionsOpacity,
-              transform: [{scale: reactionsScale}, {translateY: -80}],
+              transform: [{ scale: reactionsScale }, { translateY: -80 }],
             },
           ]}>
           {REACTIONS.map(reaction => (
@@ -145,7 +144,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 30,
     shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
