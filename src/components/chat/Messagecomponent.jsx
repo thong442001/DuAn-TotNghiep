@@ -9,14 +9,28 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
+import Clipboard from '@react-native-clipboard/clipboard';// copy
+import { Snackbar } from 'react-native-paper';// thông báo (ios and android)
+import { useSelector } from 'react-redux';
 
+export default function MessageComponent({
+  currentUserID,
+  message,
+  onReply,
+  onRevoke,
+  onIcon
+}) {
 
-export default function MessageComponent({ currentUserID, item, onReply, onRevoke }) {
-  const isCurrentUser = item.sender._id === currentUserID; // Kiểm tra tin nhắn có phải của user hiện tại không
+  const isCurrentUser = message.sender._id === currentUserID; // Kiểm tra tin nhắn có phải của user hiện tại không
+
+  const reactions = useSelector(state => state.app.reactions)
 
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, bottom: 0, left: 0, right: 0 }); // Vị trí của menu
   const messageRef = useRef(null); // ref để tham chiếu tới tin nhắn
+  const [dialogCopyVisible, setDialogCopyVisible] = useState(false);// dialog copy
+
+  //console.log(message?.message_reactionList);
 
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
@@ -42,6 +56,12 @@ export default function MessageComponent({ currentUserID, item, onReply, onRevok
     }
   };
 
+  // Hàm copy tin nhắn
+  const copyToClipboard = (text) => {
+    Clipboard.setString(text);
+    setDialogCopyVisible(true)// hiện dialog copy
+  };
+
   return (
     <View
       style={[
@@ -50,44 +70,65 @@ export default function MessageComponent({ currentUserID, item, onReply, onRevok
       ]}
     >
       {!isCurrentUser && (
-        <Image style={styles.avatar} source={{ uri: item.sender.avatar }} />
+        <Image style={styles.avatar} source={{ uri: message.sender.avatar }} />
       )}
 
       {/* Nhấn giữ tin nhắn để mở menu */}
       <TouchableWithoutFeedback onLongPress={() => {
-        item._destroy != true && handleLongPress()
+        message._destroy != true && handleLongPress()
       }}>
         <View
           ref={messageRef} // Gắn ref vào đây
           style={[styles.messageWrapper, isCurrentUser && styles.currentUserMessage]}
         >
-          {!isCurrentUser && <Text style={styles.username}>{item.sender.displayName}</Text>}
+          {!isCurrentUser && <Text style={styles.username}>{message.sender.displayName}</Text>}
           {/* Hiển thị tin nhắn trả lời nếu có */}
           {
-            (item.ID_message_reply && item._destroy == false) && (
+            (message.ID_message_reply && message._destroy == false) && (
               <View style={styles.replyContainer}>
                 <Text
                   style={styles.replyText}
                   numberOfLines={2}>
-                  {item.ID_message_reply.content || "Tin nhắn không tồn tại"}
+                  {message.ID_message_reply.content || "Tin nhắn không tồn tại"}
                 </Text>
               </View>
             )}
           {/* Nội dung tin nhắn chính */}
           {
             // tin nhắn bị thu hồi
-            item._destroy == true
+            message._destroy == true
               ? <Text style={[styles.messageTextThuHoi]}>
                 Tin nhắn đã được thu hồi
               </Text>
               : <Text style={[styles.messageText, isCurrentUser && styles.currentUserText]}>
-                {item.content}
+                {message.content}
               </Text>
           }
           {/* thời gian */}
-          <Text style={styles.messageTime}>{formatTime(item.createdAt)}</Text>
+          <Text style={styles.messageTime}>{formatTime(message.createdAt)}</Text>
+          {/* reaction biểu cảm */}
+          {
+            message?.message_reactionList.map((reaction, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.reactionButton}
+              >
+                <Text style={styles.reactionText}
+                >{reaction.ID_reaction.icon} {reaction.quantity}</Text>
+              </TouchableOpacity>
+            ))
+          }
         </View>
       </TouchableWithoutFeedback>
+
+      {/* Hiển thị Snackbar dưới cùng màn hình */}
+      <Snackbar
+        visible={dialogCopyVisible}
+        onDismiss={() => setDialogCopyVisible(false)}
+        duration={1000}
+      >
+        Đã sao chép tin nhắn!
+      </Snackbar>
 
       {/* Menu tùy chọn khi nhấn giữ */}
       <Modal
@@ -118,33 +159,43 @@ export default function MessageComponent({ currentUserID, item, onReply, onRevok
               <View
                 style={[styles.reactionBar]}
               >
-                {["❤️", "😂", "😲", "😢", "😡", "👍"].map((emoji, index) => (
-                  <TouchableOpacity key={index} style={styles.reactionButton}>
-                    <Text style={styles.reactionText}>{emoji}</Text>
-                  </TouchableOpacity>
-                ))}
+                {/* reaction biểu cảm */}
+                {
+                  reactions.map((reaction, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={styles.reactionButton}
+                      onPress={() => {
+                        onIcon(message._id, reaction._id);
+                        setMenuVisible(false);// tắc modal
+                      }}
+                    >
+                      <Text style={styles.reactionText}>{reaction.icon}</Text>
+                    </TouchableOpacity>
+                  ))
+                }
               </View>
 
               <View style={[styles.messageWrapper, isCurrentUser && styles.currentUserMessage]}>
-                {!isCurrentUser && <Text style={styles.username}>{item.sender.displayName}</Text>}
+                {!isCurrentUser && <Text style={styles.username}>{message.sender.displayName}</Text>}
                 {/* Hiển thị tin nhắn trả lời nếu có */}
                 {
-                  (item.ID_message_reply && item._destroy == false) && (
+                  (message.ID_message_reply && message._destroy == false) && (
                     <View style={styles.replyContainer}>
-                      <Text style={styles.replyText} numberOfLines={2}>{item.ID_message_reply.content}</Text>
+                      <Text style={styles.replyText} numberOfLines={2}>{message.ID_message_reply.content}</Text>
                     </View>
                   )}
                 {/* Nội dung tin nhắn chính */}
                 {
                   // tin nhắn bị thu hồi
-                  item._destroy == true
+                  message._destroy == true
                     ? <Text style={[styles.messageTextThuHoi]}>
                       Tin nhắn đã được thu hồi</Text>
                     : <Text style={[styles.messageText, isCurrentUser && styles.currentUserText]}>
-                      {item.content}</Text>
+                      {message.content}</Text>
                 }
                 {/* thời gian */}
-                <Text style={styles.messageTime}>{formatTime(item.createdAt)}</Text>
+                <Text style={styles.messageTime}>{formatTime(message.createdAt)}</Text>
               </View>
 
               <View
@@ -153,12 +204,18 @@ export default function MessageComponent({ currentUserID, item, onReply, onRevok
                 <TouchableOpacity
                   style={styles.menuItem}
                   onPress={() => {
-                    onReply(item); // Gửi tin nhắn được chọn về component cha
+                    onReply(message); // Gửi tin nhắn được chọn về component cha
                     setMenuVisible(false);// tắc modal
                   }}>
                   <Text style={styles.menuText}>Trả lời</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.menuItem}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    copyToClipboard(message.content);// copy
+                    setMenuVisible(false);// tắc modal
+                  }}
+                >
                   <Text style={styles.menuText}>Sao chép</Text>
                 </TouchableOpacity>
                 {
@@ -166,7 +223,7 @@ export default function MessageComponent({ currentUserID, item, onReply, onRevok
                   && <TouchableOpacity
                     style={styles.menuItem}
                     onPress={() => {
-                      onRevoke(item._id); // Thu hồi tin nhắn
+                      onRevoke(message._id); // Thu hồi tin nhắn
                       setMenuVisible(false);// tắc modal
                     }} >
                     <Text style={styles.menuText}>Thu hồi</Text>

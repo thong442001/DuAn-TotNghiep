@@ -49,7 +49,7 @@ const Chat = (props) => {
         getMessagesOld(params?.ID_group);
 
         // Kết nối tới server
-        const newSocket = io('http://192.168.1.71:3001', {
+        const newSocket = io('http://192.168.1.86:3001', {
             transports: ['websocket', 'polling'],
             reconnection: true,   // Cho phép tự động kết nối lại
             reconnectionAttempts: 5, // Thử kết nối lại tối đa 5 lần
@@ -96,7 +96,7 @@ const Chat = (props) => {
             ]);
         });
 
-        // Lắng nghe tin nhắn từ server
+        // Lắng nghe tin nhắn từ server bị thu hồi
         newSocket.on('message_revoked', (data) => {
             //console.log("🔥 Đã nhận được message_revoked:");
             setMessages(prevMessages => {
@@ -105,6 +105,58 @@ const Chat = (props) => {
                 );
                 //console.log("📌 Danh sách tin nhắn sau khi thu hồi:", updatedMessages);
                 return updatedMessages;
+            });
+        });
+
+        // Lắng nghe tin nhắn từ server biểu cảm
+        newSocket.on('receive_message_reation', (data) => {
+            //console.log("🔥 Đã nhận được receive_message_reation:" + data);
+            setMessages(prevMessages => {
+                return prevMessages.map((msg) => {
+                    if (msg._id === data.ID_message) {
+                        // Copy danh sách cũ
+                        let updatedReactions = [...msg.message_reactionList];
+                        //msg.message_reactionList.map()
+                        // Kiểm tra xem đã có message_reaction có tồn tại chưa
+                        const reactionIndex = updatedReactions.findIndex(
+                            (reaction) => reaction._id === data._id
+                        );
+                        if (reactionIndex !== -1) {
+                            // Nếu reaction đã tồn tại, tăng quantity
+                            updatedReactions[reactionIndex] = {
+                                ...updatedReactions[reactionIndex],
+                                quantity: updatedReactions[reactionIndex].quantity + 1
+                            };
+                        } else {
+                            // Nếu reaction chưa có, thêm mới vào danh sách
+                            updatedReactions.push({
+                                _id: data._id,
+                                ID_message: data.ID_message,
+                                ID_user: {
+                                    _id: data.ID_user._id,
+                                    displayName: data.ID_user.displayName,
+                                    avatar: data.ID_user.avatar,
+                                },
+                                ID_reaction: {
+                                    _id: data.ID_reaction._id,
+                                    name: data.ID_reaction.name,
+                                    icon: data.ID_reaction.icon,
+                                },
+                                quantity: data.quantity,
+                                updatedAt: data.updatedAt,
+                                createdAt: data.createdAt,
+                                _destroy: data._destroy,
+                            });
+                            console.log(data.ID_reaction.icon,);
+                        }
+
+                        return {
+                            ...msg,
+                            message_reactionList: updatedReactions
+                        };
+                    }
+                    return msg; // Nếu không phải message cần cập nhật, giữ nguyên
+                });
             });
         });
 
@@ -217,6 +269,17 @@ const Chat = (props) => {
         //console.log("Sự kiện thu hồi tin nhắn đã phát đi:", ID_message);
     };
 
+    // Xử lý thả biểu cảm tin nhắn
+    const iconMessage = (ID_message, ID_reaction) => {
+        const payload = {
+            ID_group: params.ID_group,
+            ID_message: ID_message,
+            ID_user: me._id,
+            ID_reaction: ID_reaction,
+        };
+        socket.emit('send_message_reaction', payload);
+    };
+
     return (
         <View style={[styles.container,
         {
@@ -248,10 +311,11 @@ const Chat = (props) => {
                 data={messages}
                 renderItem={({ item }) => (
                     <Messagecomponent
-                        item={item}
+                        message={item}
                         currentUserID={me._id}
                         onReply={() => setReply(item)}
-                        onRevoke={revokeMessage}// Truyền xuống để cập nhật danh sách tin nhắn
+                        onRevoke={revokeMessage}
+                        onIcon={iconMessage}
                     />
                 )}
                 keyExtractor={(item) => item._id}
@@ -272,6 +336,8 @@ const Chat = (props) => {
             />
             <Button title="Send" onPress={sendMessage} /> */}
 
+
+            {/* Hiển thị reply */}
             {
                 reply && (
                     <View style={styles.replyPreview}>
