@@ -5,7 +5,8 @@ export const login = createAsyncThunk(
   'user/loginApp',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await AxiosHelper().post('user/loginApp', data);
+      const response = await AxiosHelper()
+        .post('user/loginApp', data);
       //console.log(response)
       if (response.status == true) {
         return response;
@@ -18,13 +19,12 @@ export const login = createAsyncThunk(
   }
 );
 
-
-
 export const register = createAsyncThunk(
   'user/register',
   async (data, { rejectWithValue }) => {
     try {
-      const response = await AxiosHelper().post('user/addUser', data)
+      const response = await AxiosHelper()
+        .post('user/addUser', data)
       console.log(response)
       if (response.status == true) {
         return response.message;
@@ -57,13 +57,31 @@ export const myPost = createAsyncThunk(
 );
 
 /// test token
-export const getAllUsers = createAsyncThunk(
-  'user/getAllUsers',
+export const getRoleUser = createAsyncThunk(
+  'user/getRoleUser',
   async (data, { rejectWithValue }) => {
     try {
       const response = await AxiosHelper(data.token)
-        .get('user/getAllUsers', data);
-      //console.log(response)
+        .get('user/getRoleUser', data);
+      //console.log(response.status)
+      if (response.status == true) {
+        return response;
+      } else {
+        return rejectWithValue(response.data.message);
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getUser = createAsyncThunk(
+  'user/getUser',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await AxiosHelper(data.token)
+        .get(`user/getUser?userId=${data.userId}`);
+      //console.log(response.status)
       if (response.status == true) {
         return response;
       } else {
@@ -93,6 +111,95 @@ export const addPost = createAsyncThunk(
   }
 );
 
+/////////////  chat
 
+// tham gia room socket hoặc tạo group
+export const joinGroupPrivate = createAsyncThunk(
+  'group/joinGroupPrivate',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await AxiosHelper()
+        .post('group/joinGroupPrivate', data);
+      //console.log(response)
+      if (response.status == true) {
+        return response;
+      } else {
+        return rejectWithValue(response.data.message);
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
+export const getGroupID = createAsyncThunk(
+  'group/getGroupID',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await AxiosHelper(data.token)
+        .get(`group/getGroupID?ID_group=${data.ID_group}`);
+      //console.log(response.status)
+      if (response.status == true) {
+        return response;
+      } else {
+        return rejectWithValue(response.data.message);
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
 
+export const getAllGroupOfUser = createAsyncThunk(
+  'group/getAllGroupOfUser',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await AxiosHelper(data.token)
+        .get(`group/getAllGroupOfUser?ID_user=${data.ID_user}`);
+      //console.log(response.status)
+      if (response.status == true) {
+        return response;
+      } else {
+        return rejectWithValue(response.data.message);
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getMessagesGroup = createAsyncThunk(
+  'message/getMessagesGroup',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await AxiosHelper(data.token)
+        .get(`message/getMessagesGroup?ID_group=${data.ID_group}`);
+      //console.log(response.status)
+      if (response.status == true) {
+        return response;
+      } else {
+        return rejectWithValue(response.data.message);
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+export const getAllReaction = createAsyncThunk(
+  'reaction/getAllReaction',
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await AxiosHelper()
+        .get(`reaction/getAllReaction`);
+      //console.log(response.status)
+      if (response.status == true) {
+        return response;
+      } else {
+        return rejectWithValue(response.data.message);
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);

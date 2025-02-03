@@ -8,6 +8,8 @@ const initialState = {
     messageLogin: null,
     token: '', // token
     refreshToken: '',// refreshToken
+    // reactions
+    reactions: null,
 };
 
 const appSlice = createSlice({
@@ -30,7 +32,11 @@ const appSlice = createSlice({
         setLanguage: (state) => {
             state.language = !state.language;
             ///console.log(state.language);
-        }
+        },
+        setReactions: (state, action) => {
+            state.reactions = action.payload;
+            //console.log(state.reactions);
+        },
     },
 
     extraReducers: (builder) => {
@@ -45,6 +51,7 @@ const appSlice = createSlice({
         builder.addCase(login.fulfilled, (state, action) => {
             console.log("...fulfilled login");
             state.user = action.payload?.user;
+            //console.log(action.payload?.user);
             state.messageLogin = null;
             state.token = action.payload?.token;
             state.refreshToken = action.payload?.refreshToken;
@@ -61,7 +68,7 @@ const appSlice = createSlice({
     }
 });
 
-export const { resetToken, logout, setTheme, setLanguage } = appSlice.actions;
+export const { resetToken, logout, setTheme, setLanguage, setReactions } = appSlice.actions;
 export default appSlice.reducer;
 
 

@@ -97,7 +97,11 @@ const Home = (props) => {
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => navigation.navigate(oStackHome.Search.name)}>
-                            <Icon name="search-outline" size={30} color="black" style={{ marginRight: 0 }} />
+                            <Icon name="search-outline" size={30} color="black" style={{ marginRight: 15 }} />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => navigation.navigate(oStackHome.HomeChat.name)}>
+                            <Icon name="chatbox-ellipses-outline" size={30} color="black" style={{ marginRight: 0 }} />
                         </TouchableOpacity>
                         {/* <Pressable onPress={() => navigation.navigate('Profile')}>
                             <Image style={HomeS.avatar} source={{ uri: "https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671142.jpg" }} />
