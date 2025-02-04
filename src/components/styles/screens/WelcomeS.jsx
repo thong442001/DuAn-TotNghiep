@@ -9,42 +9,18 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: '#fff',
     },
-    image: {
-        width: 300,
-        height: 300,
+    viewLogo: {
+        flex: 1,  
+        justifyContent: 'center',
     },
-    title: {
-        fontSize: 30,
+   
+    headerText: {
+        position: 'absolute',
+        bottom: 40,  
         fontWeight: 'bold',
-        marginTop: 20,
-        color: colors.blackFont,
+        fontSize: 24,
         textAlign: 'center',
-    },
-    subtitle: {
-        fontSize: 16,
-        color: colors.blackFont,
-        textAlign: 'center',
-        marginVertical: 20,
-    },
-    button: {
-        backgroundColor: colors.Bluebackground,
-        paddingVertical: 15,
-        paddingHorizontal: 40,
-        borderRadius: 25,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    footerText: {
-        marginTop: 20,
-        fontSize: 14,
-        color: colors.blackFont,
-    },
-    loginText: {
-        color: colors.linkText,
-        fontWeight: 'bold',
-    },
+    }
 });
-export default styles
+
+export default styles;

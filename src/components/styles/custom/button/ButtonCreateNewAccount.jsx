@@ -2,10 +2,10 @@ import React from 'react';
 import { Dimensions, Text, TouchableOpacity, StyleSheet, View } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
-const ButtonCreateNewAccount = () => {
+const ButtonCreateNewAccount = ({onPress}) => {
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={onPress}>
         <Text style={styles.buttonText}>Tạo tài khoản mới</Text>
       </TouchableOpacity>
       <Text style={{ color: 'black', fontWeight: '500' }}>Linkage</Text>

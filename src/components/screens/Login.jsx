@@ -53,7 +53,7 @@ const Login = (props) => {
       </TouchableOpacity>
       <Text style={styles.forgotPasswordText}>Bạn quên mật khẩu ư?</Text>
       </View>
-      <ButtonCreateNewAccount />
+      <ButtonCreateNewAccount onPress={() => navigation.navigate('Screen1')} />
     </View>
   );
 };

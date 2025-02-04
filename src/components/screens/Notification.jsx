@@ -18,4 +18,3 @@ export default Notification
 const styles = StyleSheet.create({})
 
 
-///////// Phúc
